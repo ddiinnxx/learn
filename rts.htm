@@ -1,0 +1,522 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+   <meta HTTP-EQUIV="content-type" CONTENT="text/html; charset=UTF-8">
+   <title>Bakar - Fast Fundas Series - Real-Time (Realtime) Systems - $Revision: 1.2 $</title>
+   <meta NAME="Description" CONTENT="Fast Fundas Series - Real-Time (Realtime) Systems">
+   <meta NAME="Keywords" CONTENT="real, time, Realtime, Systems, system, fast, fundas, series, dinker, charak">
+</head>
+
+<body>
+
+<h1>Fast Fundas Series - Real-Time (Realtime) Systems</h1>
+
+Copyright &#169; 2004 Dinker Charak<br>
+<br>
+Last Updated on $Date: 2004/12/28 17:07:07 $<br>
+<br>
+Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.1 or any later version published by the Free Software Foundation; with the Invariant Sections being just "Why Fast Fundas", with no Front-Cover Texts, and with no Back-Cover Texts.<br>
+<br>
+<hr>
+
+<h2>Contents</h2>
+
+1 <a href="#1">Introduction to Realtime Systems</a><br>
+1.1 <a href="#11">Understanding Realtime Systems</a><br>
+2 <a href="#2">Some Basic Concepts and Definitions</a><br>
+2.1 <a href="#21">POSIX</a><br>
+2.2 <a href="#22">Process</a><br>
+2.3 <a href="#23">Thread</a><br>
+2.4 <a href="#24">Task</a><br>
+2.5 <a href="#25">Job</a><br>
+2.6 <a href="#26">Multi-Tasking</a><br>
+2.6.1 <a href="#261">Cooperative Multitasking</a><br>
+2.6.2 <a href="#262">Preemptive Multitasking</a><br>
+2.7 <a href="#27">Finite State machine</a><br>
+2.8 <a href="#28">State</a><br>
+2.9 <a href="#29">State Transitions</a><br>
+2.10 <a href="#210">Preemption</a><br>
+2.11 <a href="#211">Context Switch</a><br>
+2.12 <a href="#212">Context Switch Overhead</a><br>
+2.13 <a href="#213">Synchronization</a><br>
+3 <a href="#3">Scheduling</a><br>
+3.1 <a href="#31">Round-Robin Scheduling</a><br>
+3.2 <a href="#32">Priority Scheduling</a><br>
+3.3 <a href="#33">Fixed-Priority Preemptive Round-Robin Scheduling</a><br>
+3.4 <a href="#34">Rate-Monotonic Scheduling</a><br>
+3.5 <a href="#35">Dynamic-Priority Preemptive Scheduling</a><br>
+3.6 <a href="#36">Deadline-Monotonic Scheduling</a><br>
+4 <a href="#4">Inter-Task Communication</a><br>
+4.1 <a href="#41">Mutual Exclusion</a><br>
+4.2 <a href="#42">Inter-Task Communication Methods</a><br>
+4.2.1 <a href="#421">Shared Memory</a><br>
+4.2.2 <a href="#422">Semaphores</a><br>
+4.2.2.1 <a href="#4221">Mutual Exclusion Using Binary Semaphores</a><br>
+4.2.2.2 <a href="#4222">Synchronization Using Binary Semaphores</a><br>
+4.2.3 <a href="#423">Signals</a><br>
+4.2.3.1 <a href="#4231">Synchronization Using Signals</a><br>
+4.3 <a href="#43">Priority Inversion</a><br>
+A <a href="#a">Appendix</a><br>
+A.1 <a href="#a1">Revision History</a><br>
+A.2 <a href="#a2">Credits</a><br>
+A.3 <a href="#a3">Why Fast Fundas</a><br>
+A.4 <a href="#a4">This Document Online</a><br>
+A.5 <a href="#a5">GNU Free Documentation License</a><br>
+<br>
+<hr>
+
+<h2><a name="1">1</a> Introduction to Realtime Systems</h2>
+
+<h3><a name="11">1.1</a> Understanding Realtime Systems</h3>
+
+To offer an analogy, Realtime system work like just like a driver driving his racing car at a very high speed.<br>
+<br>
+The driver will have to take right decision fast and in time. A decision to turn left may not be a good idea after the turn has been missed.<br>
+<br>
+The driver has to know his environment very well. The car would skid if the road were wet or icy.<br>
+<br>
+The driver should know the capability of the car. If the driver tries to push it beyond its limits, the car will break down. And break down at high speed can lead to fatal accidents.<br>
+<br>
+The driver should know what all information would the various meters in the dashboard provide him. Speed of the car, how much fuel is still left, the temperature of the engine, air pressure in the tires, etc are vital to for a driver of such a fast car so that a valid decision can be made.<br>
+<br>
+What happens if the driver turns on a wet road at very high speed? The car may have an accident. The driver of a racing car will always be prepared for such a possibility in terms of safeguards like helmets, escapes like a door that will open on one click and a recovery like an ambulance nearly.<br>
+<br>
+As we study more about Realtime systems, we will notice the similarities between such a system and the driver.<br>
+<br>
+Now consider you are cycling down a road that is in a very bad shape.<br>
+<br>
+A quick veer to either side maybe needed, just in time to avoid a pothole you had almost missed to notice. But, if you fail you will get total-body jerk that might shake up a bit but you will not need an ambulance to recover.<br>
+<br>
+Or consider you average day in front of your home PC.<br>
+<br>
+You are moving the mouse and the pointer moves accordingly. Now, what happens if due to overload, the mouse is slow to respond? We will be irritated, but the world will not come crashing down. High efficient with respect to the home PC responding to mouse's movement is desired but it is not critical.<br>
+<br>
+That is the essence of difference between a Realtime system and other systems. Fatality, as compared to irritation.<br>
+<br>
+<h2><a name="2">2</a> Some Basic Concepts and Definitions</h2>
+
+<h3><a name="21">2.1</a> POSIX</h3>
+
+POSIX is an acronym that stands for Portable Operating System Interface.<br>
+<br>
+The POSIX standard is heavily influenced by UNIX operating system. As the name suggests, the aim of this standard is to provide a common interface for operating systems for purpose of portability to source code level.<br>
+<br>
+<i>The following quote appears in the Introduction to POSIX.1: "The name POSIX was suggested by Richard Stallman. It is expected to be pronounced pahz-icks as in positive, not poh-six, or other variations. The pronunciation has been published in an attempt to promulgate a standardized way of referring to a standard operating system interface".</i><br>
+<br>
+For the sake of uniformity, we shall use POSIX interfaces in examples.<br>
+<br>
+POSIX includes interfaces for:<br>
+<ul>
+  <li>asynchronous I/O</li>
+  <li>semaphores</li>
+  <li>message queues</li>
+  <li>memory management</li>
+  <li>queued signals</li>
+  <li>scheduling</li>
+  <li>clocks and timers</li>
+</ul>
+For more on POSIX, please refer to <a href="http://www.pasc.org/">http://www.pasc.org/</a>.<br>
+<br>
+Note: The meaning of terms process, thread, task or job varies from one environment to another. Therefore, it is necessary to properly define these terms as used here.<br>
+
+<h3><a name="22">2.2</a> Process</h3>
+
+A process typically refers to a "program in execution" and the set of resources associated with it. As per POSIX definition, process is an address space with one or more threads executing within that address space, and the required system resources for those threads. Many of the system resources are shared among all of the threads within a process.<br>
+
+<h3><a name="23">2.3</a> Thread</h3>
+
+A thread typically refers to a unit flow of control that can be scheduled. A process contains at least one thread. As per POSIX definition, thread is a single flow of control within a process. Each thread has its own thread ID, scheduling priority, errno value, etc. All threads executing in the same process share the same address space (and hence, mess each other up).<br>
+
+<h3><a name="24">2.4</a> Task</h3>
+
+Task is not a standard term. Sometimes it refers to a process and sometimes to a thread. In Realtime systems, it often refers to a thread and that is how it is used here.<br>
+
+<h3><a name="25">2.5</a> Job</h3>
+
+Job is again not a standard term. It is often used in place of task. We will not use this term.<br>
+
+<h3><a name="26">2.6</a> Multi-Tasking</h3>
+
+Multi-tasking refers to the ability of a system to execute more than one task at the same time. However, in reality, multitasking just creates the appearance of many tasks running concurrently. Actually, the tasks are interleaves rather than concurrently.<br>
+<center>
+<br>
+<img border="0" src="images/ff_rts_fig1.png" alt="Task A, Task B and Task C running concurrently" width="388" height="218"><br>
+<br>
+Fig 1: Task A, Task B and Task C running concurrently<br>
+<br>
+<img border="0" src="images/ff_rts_fig2.png" alt="Task A, Task B and Task C running interleaved" width="388" height="218"><br>
+<br>
+Fig 2: Task A, Task B and Task C running interleaved<br>
+<br>
+</center>
+<b><a name="261">2.6.1</a> Cooperative Multitasking</b>
+<br>
+In cooperative multitasking, each task can control the CPU for as long as it needs it. Thus, the task currently controlling the CPU must offer control to other tasks. It is called cooperative because all tasks must cooperate for it to work. If one task acts like a selfish and self-centric person and does not cooperate, it can hog the CPU. <br>
+<br>
+<b><a name="262">2.6.2</a> Preemptive Multitasking</b>
+<br>
+In preemptive multitasking, the operating system allocates the CPU time slices to each task. Thus, preemptive multitasking forces tasks to share the CPU whether they want to or not. <br>
+
+<h3><a name="27">2.7</a> Finite State machine</h3>
+
+In computer science, a finite-state machine (FSM) or finite-state automaton (FSA) is an abstract concept. <br>
+<br>
+A FSM can have only fixed number of conditions or states and it can go from one state to another by a fixed number of paths. All this is properly defined during the design of the FSM.<br>
+<br>
+Imagine a small toy windmill whose arms are always rotating. The windmill arms can rotate in two directions, clockwise and counter clockwise. It has a small remote that has two buttons. If one is clicked, the arms rotate in clockwise direction and if the other is clicked, they rotate in counter clockwise direction.<br>
+<br>
+This whole system is a simple FSM. The windmill has two states and there are two transitions to move between the states. One thing to note is that a state does not have any further internal structure. That means that when a FSM is in a state, it has that state and no state has any number of sub-states it can have while in a particular state.<br>
+<center>
+<br>
+<img border="0" src="images/ff_rts_fig3.png" alt="Stated and State Transitions of the Windmill" width="255" height="262"><br>
+<br>
+Fig 3: Stated and State Transitions of the Windmill<br>
+</center>
+
+<h3><a name="28">2.8</a> State</h3>
+
+Operating systems keep track of the various tasks running with help of numerous parameters. One of them is the internal state of a task. This is a very common model and many operating systems use states to keep track of internal condition of a task.<br>
+<br>
+Thus, the state of a task is the last-known or current status of the task. <br>
+<br>
+The states and their transition are different for different operating systems. However, typical states of a task that we will use here can be:<br>
+<br>
+READY: The state of a task that is not waiting for any resource other than the CPU.<br>
+PEND: The state of a task that is blocked due to the unavailability of some resource (other than the CPU).<br>
+DELAY: The state of a task that has been put to sleep for some duration.<br>
+
+<h3><a name="29">2.9</a> State Transitions</h3>
+
+As we saw in the windmill example, there are always well defined ways to change the state of a system. <br>
+<br>
+Following table lists some reasons or ways we can change the state of a system:<br>
+<pre>
+READY --> wait for a resource --> PEND
+READY --> delay command       --> DELAY
+PEND  --> resource acquired   --> READY
+DELAY --> delay expires       --> READY
+</pre>
+<center>
+<br>
+<img border="0" src="images/ff_rts_fig4.png" alt="State Diagram" width="309" height="136"><br>
+<br>
+Fig 4: State Diagram<br>
+</center>
+
+<h3><a name="210">2.10</a> Preemption</h3>
+
+Preemption is defined as the act of a higher-priority process taking control of the processor from a lower-priority task. <br>
+
+<h3><a name="211">2.11</a> Context Switch</h3>
+
+As we saw earlier that in a Multi-tasking system, various tasks can be interleaved and that the task switch can be preemptive. When one task preempts another task out of CPU to use the CPU for itself, the CPU is said to have undergone a context change.<br>
+<br>
+Thus, context switch refers to the changes necessary in the CPU in response to preemption when the scheduler schedules a different task to run on the CPU. This involves two things:<br>
+<ul>
+  <li>switching out the outgoing task, and</li>
+  <li>switching in the incoming task</li>
+</ul>
+For the outgoing task, it may do typical things like saving the contents of the registers, saving the contents of the stack, etc. For an incoming task, it may load the saved values to the registers, stack, etc.<br>
+
+<h3><a name="212">2.12</a> Context Switch Overhead</h3>
+
+It takes a finite amount of time for the system to switch from one running task to a different task. This is referred to as context switching overhead.<br>
+
+<h3><a name="213">2.13</a> Synchronization</h3>
+
+Tasks typically share resources and services for which they must be prepared to wait if they are not available immediately. Synchronization is the managing the resources and tasks such that there is fair allocation of the resource to a task. <br>
+
+<h2><a name="3">3</a> Scheduling</h2>
+
+As we saw earlier, in a multi-tasking system various tasks can be interleaved. That is, one task can run for some time and then CPU is allocated to another task and so on. We also saw that the task switch could be preemptive or cooperative.<br>
+<br>
+The process of determining which task runs when in a multi-tasking system is referred to as CPU scheduling or plain scheduling. The algorithm followed to decide who gets next turn on CPU is called the scheduling algorithm. The program that does this is called the scheduler.<br>
+<br>
+Thus, when we have a pool of tasks in READY state, contending for the CPU time, the job of the scheduler is to distribute the resource of the CPU to the different processes in a fair manner. The definition of fair depends on the designer of the system and varies. Based on this need of fairness, various scheduling algorithm are chosen.<br>
+<br>
+There are two scheduling actions per task instance. One, when the task is context switched and it begins to execute. Another, when it completes.<br>
+
+<h3><a name="31">3.1</a> Round-Robin Scheduling</h3>
+
+A round-robin scheduling algorithm attempts to share the CPU fairly among all ready tasks. Round-robin scheduling achieves this by using time slicing. Each task is given CPU time for a defined interval, or time slice. All tasks get an equal interval and all are executed in rotation. <br>
+<center>
+<br>
+<img border="0" src="images/ff_rts_fig5.png" alt="Round-Robin Scheduling" width="388" height="218"><br>
+<br>
+Fig 5: Round-Robin Scheduling<br>
+<br>
+</center>
+The disadvantage of this scheduling is that if a task of very high priority needs CPU time, it will have to wait for its turn. Since, in a Realtime system, a high priority task should be processed first, this scheduling as such does not serve the purpose.<br>
+
+<h3><a name="32">3.2</a> Priority Scheduling</h3>
+
+A priority-based scheduling algorithm allocates a priority to each task. The priority level is usually in terms of a number. If there are 256 levels of priority, zero could be the highest priority level a task can have and 256 the lowest. The CPU is allocated to the highest priority task that is in READY state. It can also be called as Fixed-Priority Scheduling as the scheduler does not change the priority of a task.<br>
+<center>
+<br>
+<img border="0" src="images/ff_rts_fig6.png" alt="Priority Scheduling" width="388" height="218"><br>
+<br>
+Fig 6: Priority Scheduling<br>
+<br>
+</center>
+Only in the Fig 6, the context switch overhead has been shown explicitly between end of a task&#39;s run and start of another when context switch happens for the sake of illustration.<br>
+<br>
+The disadvantage of this scheduling is that if two tasks having same priority need CPU time, the one starting earlier will starve the other task of processor time till it is done. Thus even if the second task is a high priority task, the system may not be able to complete it in time because of another equal priority task. This, this scheduling as such does not serve the purpose.<br>
+
+<h3><a name="33">3.3</a> Fixed-Priority Preemptive Round-Robin Scheduling</h3>
+
+One way of making use of advantages of both scheduling without letting the disadvantages spoil Realtime-ness, is to use a mix of the two.<br>
+<br>
+A Priority based Preemptive Round-Robin scheduling algorithm allocates a priority to each task. The CPU is allocated to the highest priority task that is in READY state. However, if there are more then one tasks at that priority level, they are run in round-robin manner.<br>
+<center>
+<br>
+<img border="0" src="images/ff_rts_fig7.png" alt="Fixed-Priority Preemptive Round-Robin Scheduling" width="388" height="218"><br>
+<br>
+Fig 7: Fixed-Priority Preemptive Round-Robin Scheduling<br>
+<br>
+</center>
+Most Realtime Operating Systems (RTOS) support this scheme. Now on, we will refer to it as Fixed-Priority Preemptive Scheduling only.<br>
+
+<h3><a name="34">3.4</a> Rate-Monotonic Scheduling</h3>
+
+A fixed-priority preemptive scheduling in which, the priority is decided by the scheduler based on its frequency (inverse of the period) if it is a periodic task. Thus, higher the frequency, the higher its priority is. <br>
+
+<h3><a name="35">3.5</a> Dynamic-Priority Preemptive Scheduling</h3>
+
+It is similar to Fixed-Priority Preemptive Scheduling with one basic difference. The difference is that the priority of a task can change from instance to instance or within the execution of an instance. <br>
+
+<h3><a name="36">3.6</a> Deadline-Monotonic Scheduling</h3>
+
+In Deadline-Monotonic Scheduling, the deadline of a task is a pre-fixed point in time relative to the beginning of the task. The shorter this deadline, the higher the priority so it can finish in time. <br>
+
+<h2><a name="4">4</a> Inter-Task Communication</h2>
+
+When we have multi-tasking, there is a need for tasks to communicate with each other. That maybe for the purpose of data sharing, synchronization, error handling or even exception handling.<br>
+
+<h3><a name="41">4.1</a> Mutual Exclusion</h3>
+
+Mutual Exclusion ensures that there is no contention for resource access. It ensures two tasks can not access same resource at same time and hence lead to unpredictability. It also ensures that there is a proper method to request and hold on and release of a resource that.<br>
+
+<h3><a name="42">4.2</a> Inter-Task Communication Methods</h3>
+
+<ul>
+  <li>Shared memory</li>
+  <li>Semaphores</li>
+  <li>Signals</li>
+</ul> 
+
+<b><a name="421">4.2.1</a> Shared Memory</b><br>
+<br>
+Shared Memory is the most simple method for tasks to communicate. Since, all tasks share the address space, all tasks can access a given memory address.<br>
+<br>
+A data structure can be used to define a memory block. By accessing this shared data structures the data can be shared between various tasks.<br>
+<br>
+The flip side of this method is that it can lead to horrible errors if proper care is not taken. Let us consider one such issue.<br>
+<br>
+RAW (Read After Write) error can happen when one task is writing to a memory and another task is reading from it. The 'Read' from the task reading should follow the 'Write' from the task writing. But if the task reading from that memory read it before the task writing onto it wrote any data on it. The task would end up reading invalid data. This, in a Realtime system can lead to catastrophic failures.<br>
+<br>
+Such errors can be avoided using various synchronization techniques like resource locking using semaphores, temporarily disabling interrupts or temporarily disabling preemption. <br>
+<br>
+<b><a name="422">4.2.2</a> Semaphores</b><br>
+<br>
+Semaphores often provide the fastest intertask communication mechanism and address the need for both mutual exclusion and synchronization.<br>
+<br>
+A semaphore can be viewed as a flag or a marker or a red/green jhandi that can be used to specify if a resource is available or unavailable. <br>
+<br>
+When a task tries to takes a binary semaphore, the outcome depends on whether the semaphore is available or unavailable at the time of the call. <br>
+<br>
+If the semaphore is available, then the semaphore becomes unavailable. It is up to this task to release the semaphore once its need is over.<br>
+<br>
+If the semaphore is unavailable, the task is put on a queue of blocked tasks and enters a state of PEND on the availability of the semaphore.<br>
+<br>
+<b><a name="4221">4.2.2.1</a> Mutual Exclusion Using Binary Semaphores</b><br>
+<br>
+Suppose at one given time, only one task is allowed to write into a memory location. <br>
+
+<pre>
+/* sample program 1 - incomplete */
+
+int someGlobalVar;
+
+void sometaskA(void)
+{
+	...
+	/* wait for the semaphore */
+	sem_wait(aSemaphore);
+
+	/* got it! */
+	someGlobalVar = 1;
+
+	/* let go */
+	sem_post(aSemaphore);
+	...
+}
+
+void sometaskB(void)
+{
+	...
+	/* wait for the semaphore */
+	sem_wait(aSemaphore);
+
+	/* got it! */
+	someGlobalVar = 2;
+
+	/* let go */
+	sem_post(aSemaphore);
+	...
+}
+</pre>
+
+This way when these two tasks are running in multi-tasking environment, they will have to wait for a semaphore to be available to write into some global memory.<br>
+<br>
+<b><a name="4222">4.2.2.2</a> Synchronization Using Binary Semaphores</b><br>
+<br>
+Suppose there is a task that produces one unit of data randomly. It can write that data into a global memory. There is another task that has been written to process the data. A semaphore can be used to synchronize these two tasks.<br>
+
+<pre>
+/* sample program 2 - incomplete */
+
+int someGlobalVar;
+
+void generatorTask(void)
+{
+	while (1)
+	{
+		/* wait for the semaphore */
+		sem_wait(aSemaphore);
+
+
+		/* wait for some random time */
+		...
+
+		/* got it! */
+		someGlobalVar = 3;
+
+		/* let go */
+		sem_post(aSemaphore);
+	}
+}
+
+void processorTask(void)
+{
+	while (1)
+	{
+		/* wait for the semaphore */
+		sem_wait(aSemaphore);
+
+		/* got it! that means generatorTask wrote something to someGlobalVar */
+		/* do something */
+		...
+		
+		/* let go */
+		sem_post(aSemaphore);
+	}
+}
+</pre>
+
+The processorTask is forever waiting on the semaphore. When ever it is available, it means that there is valid data available to process. Once it has done that, it lets go of the semaphore. In the meantime, generatorTask is already in queue to grab it. As soon as processorTask lets go, generatorTask grabs it back and hold onto it till it has some valid data to send again.<br>
+<br>
+This way when these two tasks are running in multi-tasking environment, they can be synchronized.<br>
+<br>
+<b><a name="423">4.2.3</a> Signals</b><br>
+<br>
+Signals can be seen as software interrupts. They can asynchronously alter the control flow of a task. Any task or ISR can raise a signal for a particular task. The task that is being signaled, on receiving it immediately suspends its current thread of execution and executes the task-specified signal handler routine the next time it is scheduled to run. <br>
+<br>
+<b><a name="4231">4.2.3.1</a> Synchronization Using Signals</b><br>
+<br>
+Suppose there is a task that produces one unit of data randomly. It can write that data into a global memory. There is another task that has been written to process the data. A signal can be used to synchronize these two tasks.<br>
+
+<pre>
+/* sample program 3 - incomplete */
+
+int someGlobalVar;
+
+void generatorTask(void)
+{
+	/* use OS specific method to get ID of the processor task */
+	processorID = someOSCall();
+
+	while (1)
+	{
+		/* wait for some random time */
+		...
+
+		/* generate data */
+		someGlobalVar = 3;
+
+		/* send a signal */
+		kill(processorID, signalNum);
+	}
+}
+
+void processorTask(void)
+{
+	/* specify the signal handler */
+	...
+	aSigaction.sa_handler = catchProcessorTaskSignals;
+	sigaction(SOME_SIGNAL, &aSigaction, NULL);
+
+	/* do something else */
+}
+
+void catchProcessorTaskSignals(int signal)
+{
+	/* implement generatorTask generated data processing here */
+	...
+}
+</pre>
+
+The generatorTask raises a signal as soon as the data is ready. When the processorTask was launched, it had specified a handler function for that signal. As soon as the generatorTask sends the signal, the processorTask will execute code in catchProcessorTaskSignals() inside the context of processorTask only.<br>
+<br>
+This way when these two tasks are running in multi-tasking environment, they can be synchronized.<br>
+
+<h3><a name="43">4.3</a> Priority Inversion</h3>
+
+Priority inversion arises when a higher-priority task is forced to wait for an 
+indefinite period for a lower-priority task to complete and give up the resource.<br> 
+<br>
+Let us consider two tasks, taskHighPri and taskLowPri that have high and low priority, respectively.
+taskLowPri acquires some resource by taking its associated binary semaphore. Along comes taskHighPri 
+and preempts taskLowPri. Now it wants to use the same resource and waits on the same semaphore that
+taskLowPri has taken. Since, taskLowPri has been preempted, it is unable to finish what it was doing and 
+give the semaphore. Thus, taskHighPri becomes blocked for indefinite period.<br>
+<br>
+There are ways to handle such scenarios. One way is that a task that has a resource, executes at the 
+same priority as of the highest-priority task blocked on that resource.<br>
+<br>
+So in above case, the taskLowPri's priority is raised to that of taskHighPri. That way, having same priority
+as taskHighPri, the taskLowPri preempts it (round robin followed when many task of same priority in READY
+state), finishes its work and gives up the semaphore. As soon, as it works gets done, its priority is back to 
+normal and situation is taken care of.
+
+<h2><a name="a">A</a> Appendix</h2>
+
+<h3><a name="a1">A.1</a> Revision History</h3>
+
+Jan 28, 2004 - Initial release<br>
+Feb 07, 2004 - Made changes as suggested by iips tech yahoo group<br>
+Mar 11, 2004 - Cleaned up<br>
+Sep 30, 2004 - Updated for sarovar.org release<br>
+
+<h3><a name="a2">A.2</a> Credits</h3>
+
+Dinker Charak - ddiinnxx at users dot sarovar dot org<br>
+
+<h3><a name="a3">A.3</a> Why Fast Fundas</h3>
+
+The aim of the 'Fast Fundas Series' is to provide a crisp introduction to a specific subject. A 'Fast Fundas Series' document may not cover all related topics or go into extreme details, but it will cover the minimum topics needed to get a good lateral grasp of the subject and have enough information to get started on the subject. After reading a 'Fast Fundas Series' document, the reader can go ahead and further explore the subject via manuals, text books or complete references.<br>
+<br>
+'Funda' is a very popular and colloquial term used in many campuses around India as a short form of  'Fundamentals'. Thus, 'Fast Fundas' is a colloquial way to say, 'Quick Introduction to the Fundamentals'.
+
+<h3><a name="a4">A.4</a> This Document Online</h3>
+
+This document and its latest version is available online at <a href="http://sarovar.org/projects/bakar/">http://sarovar.org/projects/bakar/</a>.
+
+<h3><a name="a5">A.5</a> GNU Free Documentation License</h3>
+
+<a href="http://www.gnu.org/copyleft/fdl.html">http://www.gnu.org/copyleft/fdl.html</a>
+<br>
+<br>
+<hr>
+<i>$Id: rts.htm,v 1.2 2004/12/28 17:07:07 ddiinnxx Exp $</i><br>
+</body>
+</html>
